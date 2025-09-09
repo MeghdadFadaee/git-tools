@@ -55,11 +55,11 @@ function Insert-Username-Into-Url {
         $rest = $matches[3]
 
         if (-not $existingUser) {
-            return ,@($protocol + $username + "@" + $rest, "new")
+            return [PSCustomObject]@{ Url = "$protocol$username@$rest"; Status = "new" }
         } elseif ($existingUser -eq $username) {
-            return ,@($url, "same")
+            return [PSCustomObject]@{ Url = $url; Status = "same" }
         } else {
-            return ,@($protocol + $username + "@" + $rest, "new")
+            return [PSCustomObject]@{ Url = "$protocol$username@$rest"; Status = "new" }
         }
     } else {
         return $null
@@ -85,23 +85,21 @@ try {
             continue
         }
 
-        $newUrl = $result[0]
-        $status = $result[1]
+        $newUrl = $result.Url
+        $status = $result.Status
 
         if ($status -eq "same") {
-            Write-Host "[INFO] Remote ${r} already has username '$Username': $oldUrl"
+            Write-Host "[INFO] Remote ${r} already has username '$Username': $newUrl"
             continue
         }
 
-        if ($newUrl -ne $oldUrl) {
-            git remote set-url $r $newUrl
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "[OK] Updated ${r}:"
-                Write-Host "     Old: $oldUrl"
-                Write-Host "     New: $newUrl"
-            } else {
-                Write-Host "[ERROR] Failed to update remote ${r}"
-            }
+        git remote set-url $r $newUrl
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "[OK] Updated ${r}:"
+            Write-Host "     Old: $oldUrl"
+            Write-Host "     New: $newUrl"
+        } else {
+            Write-Host "[ERROR] Failed to update remote ${r}"
         }
     }
 } finally {
