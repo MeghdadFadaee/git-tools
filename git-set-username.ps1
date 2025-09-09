@@ -51,8 +51,16 @@ function Insert-Username-Into-Url {
 
     if ($url -match '^(https?:\/\/)(?:([^@\/]+)@)?(.+)$') {
         $protocol = $matches[1]
+        $existingUser = $matches[2]
         $rest = $matches[3]
-        return "$protocol$username@$rest"
+
+        if (-not $existingUser) {
+            return ,@($protocol + $username + "@" + $rest, "new")
+        } elseif ($existingUser -eq $username) {
+            return ,@($url, "same")
+        } else {
+            return ,@($protocol + $username + "@" + $rest, "new")
+        }
     } else {
         return $null
     }
@@ -66,12 +74,34 @@ try {
 
     foreach ($r in $remotes) {
         $oldUrl = git remote get-url $r 2>$null
-        if (-not $oldUrl) { continue }
+        if (-not $oldUrl) {
+            Write-Host "[WARN] Remote ${r} has no URL. Skipped."
+            continue
+        }
 
-        $newUrl = Insert-Username-Into-Url -url $oldUrl -username $Username
-        if ($newUrl -and $newUrl -ne $oldUrl) {
+        $result = Insert-Username-Into-Url -url $oldUrl -username $Username
+        if ($result -eq $null) {
+            Write-Host "[WARN] Remote ${r} uses SSH or unsupported URL: $oldUrl. Skipped."
+            continue
+        }
+
+        $newUrl = $result[0]
+        $status = $result[1]
+
+        if ($status -eq "same") {
+            Write-Host "[INFO] Remote ${r} already has username '$Username': $oldUrl"
+            continue
+        }
+
+        if ($newUrl -ne $oldUrl) {
             git remote set-url $r $newUrl
-            Write-Host "Updated $r:`n  Old: $oldUrl`n  New: $newUrl"
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "[OK] Updated ${r}:"
+                Write-Host "     Old: $oldUrl"
+                Write-Host "     New: $newUrl"
+            } else {
+                Write-Host "[ERROR] Failed to update remote ${r}"
+            }
         }
     }
 } finally {
