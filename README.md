@@ -25,7 +25,7 @@ https://employee9999@example.com/big-company/secret-repo.git
 
 ## Installation
 
-1. Save the script as `git-add-username.ps1`.
+1. Save the script as `git-set-username.ps1`.
 2. Place it in a directory included in your **PATH**, or add its folder to PATH manually.
    - Example: `C:\Users\<YourUser>\Scripts\`
 3. Ensure PowerShell allows running scripts:
@@ -39,22 +39,22 @@ https://employee9999@example.com/big-company/secret-repo.git
 
 ### Basic usage (current directory)
 ```powershell
-git-add-username.ps1 -Username employee9999
+git-set-username.ps1 -Username employee9999
 ```
 
 ### Specify repository path
 ```powershell
-git-add-username.ps1 -Path "C:\projects\secret-repo" -Username employee9999
+git-set-username.ps1 -Path "C:\projects\secret-repo" -Username employee9999
 ```
 
 ### Update a different remote
 ```powershell
-git-add-username.ps1 -Username employee9999 -RemoteName upstream
+git-set-username.ps1 -Username employee9999 -RemoteName upstream
 ```
 
 ### Update all remotes
 ```powershell
-git-add-username.ps1 -Username employee9999 -All
+git-set-username.ps1 -Username employee9999 -All
 ```
 
 ---
